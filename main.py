@@ -5,6 +5,7 @@ from main_window import MainWindow
 from browser_controller import BrowserController
 import asyncio
 from queue import Queue, Empty
+import random
 
 class ProxyBrowser:
     def __init__(self):
@@ -36,6 +37,9 @@ class ProxyBrowser:
             self.window.log_text.append("请先设置并测试代理")
             return
             
+        # 获取时间范围设置
+        time_range = self.window.get_time_range()
+        
         # 将URLs添加到队列
         for url in urls:
             self.url_queue.put(url)
@@ -44,7 +48,7 @@ class ProxyBrowser:
         
         # 创建并启动线程
         for _ in range(thread_count):
-            thread = BrowserThread(self.url_queue, proxy)
+            thread = BrowserThread(self.url_queue, proxy, time_range)
             thread.log_signal.connect(self.window.log_text.append)
             thread.start()
             self.browser_threads.append(thread)
@@ -65,10 +69,11 @@ class ProxyBrowser:
 class BrowserThread(QThread):
     log_signal = pyqtSignal(str)
     
-    def __init__(self, url_queue, proxy):
+    def __init__(self, url_queue, proxy, time_range):
         super().__init__()
         self.url_queue = url_queue
         self.proxy = proxy
+        self.time_range = time_range
         self.browser_controller = BrowserController()
         self.is_running = True
         
@@ -76,11 +81,23 @@ class BrowserThread(QThread):
         async def async_browse():
             try:
                 await self.browser_controller.init_browser(self.proxy)
+                current_ip = self.browser_controller.get_current_ip()
+                self.log_signal.emit(f"浏览器已初始化，使用IP: {current_ip}")
+                
                 while self.is_running:
                     try:
                         url = self.url_queue.get_nowait()
-                        self.log_signal.emit(f"正在访问: {url}")
+                        self.log_signal.emit(f"正在访问: {url} (使用IP: {current_ip})")
                         content = await self.browser_controller.visit_url(url)
+                        
+                        # 随机等待时间
+                        wait_time = random.randint(
+                            self.time_range['min_time'],
+                            self.time_range['max_time']
+                        )
+                        self.log_signal.emit(f"停留 {wait_time} 秒...")
+                        await asyncio.sleep(wait_time)
+                        
                         self.log_signal.emit(f"访问成功: {url}")
                     except Empty:
                         break
