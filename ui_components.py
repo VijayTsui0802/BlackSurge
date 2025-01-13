@@ -134,7 +134,7 @@ def create_main_content(proxy_manager):
     )
 
 def create_control_section():
-    """创建访问控制区域（合并时间和线程控制）"""
+    """创建访问控制区域"""
     control_frame = QFrame()
     control_frame.setObjectName("controlFrame")
     control_layout = QVBoxLayout(control_frame)
@@ -162,6 +162,8 @@ def create_control_section():
     min_time_input.setValue(10)
     min_time_input.setSuffix(" 秒")
     min_time_input.setObjectName("timeSpinBox")
+    min_time_input.setMinimumWidth(120)  # 设置最小宽度
+    min_time_input.setFixedHeight(30)    # 设置固定高度
     min_time_layout.addWidget(min_time_label)
     min_time_layout.addWidget(min_time_input)
     
@@ -174,11 +176,14 @@ def create_control_section():
     max_time_input.setValue(20)
     max_time_input.setSuffix(" 秒")
     max_time_input.setObjectName("timeSpinBox")
+    max_time_input.setMinimumWidth(120)  # 设置最小宽度
+    max_time_input.setFixedHeight(30)    # 设置固定高度
     max_time_layout.addWidget(max_time_label)
     max_time_layout.addWidget(max_time_input)
     
     time_input_layout.addLayout(min_time_layout)
     time_input_layout.addLayout(max_time_layout)
+    time_input_layout.addStretch()  # 添加弹性空间
     time_layout.addLayout(time_input_layout)
     
     # 线程控制
@@ -194,12 +199,14 @@ def create_control_section():
     thread_slider.setRange(1, 10)
     thread_slider.setValue(3)
     thread_slider.setObjectName("threadSlider")
+    thread_slider.setFixedHeight(30)  # 设置固定高度
     
     thread_value_layout = QHBoxLayout()
     thread_value_label = QLabel("当前数量:")
     thread_value_label.setObjectName("controlLabel")
     thread_value = QLabel("3")
     thread_value.setObjectName("valueLabel")
+    thread_value.setMinimumWidth(30)  # 设置最小宽度
     thread_slider.valueChanged.connect(lambda v: thread_value.setText(str(v)))
     
     thread_value_layout.addWidget(thread_value_label)

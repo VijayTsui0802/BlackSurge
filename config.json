@@ -2,7 +2,7 @@
   "urls": "https://mail.tm/zh/",
   "proxy_string": "prem.iprocket.io:5959:com23112818-res-BR-sid-{sid}-sesstime-5:ZvXa2ey06FmX41o1tLcY",
   "thread_count": 4,
-  "min_time": 10,
+  "min_time": 12,
   "max_time": 20,
   "headless": false
 }

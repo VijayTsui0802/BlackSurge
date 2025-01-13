@@ -226,16 +226,56 @@ class MainWindow(QMainWindow):
             }
             
             #timeSpinBox {
-                padding: 5px;
-                min-width: 80px;
+                padding: 5px 10px;
+                min-width: 120px;
                 border: 1px solid #bdc3c7;
                 border-radius: 4px;
-                font-size: 13px;
+                font-size: 14px;
+                background-color: white;
+            }
+            
+            #timeSpinBox::up-button, #timeSpinBox::down-button {
+                width: 20px;
+                background-color: #f0f0f0;
+                border: none;
+                border-left: 1px solid #bdc3c7;
+            }
+            
+            #timeSpinBox::up-button:hover, #timeSpinBox::down-button:hover {
+                background-color: #e0e0e0;
             }
             
             #threadSlider {
-                height: 25px;
+                height: 30px;
                 margin: 10px 0;
+            }
+            
+            #threadSlider::groove:horizontal {
+                border: 1px solid #bdc3c7;
+                height: 10px;
+                background: #e0e0e0;
+                margin: 0px;
+                border-radius: 5px;
+            }
+            
+            #threadSlider::handle:horizontal {
+                background: #3498db;
+                border: none;
+                width: 20px;
+                margin: -5px 0;
+                border-radius: 10px;
+            }
+            
+            #threadSlider::handle:horizontal:hover {
+                background: #2980b9;
+            }
+            
+            #valueLabel {
+                color: #3498db;
+                font-weight: bold;
+                font-size: 14px;
+                min-width: 30px;
+                padding: 0 5px;
             }
             
             QGroupBox {
