@@ -63,11 +63,15 @@ class BrowserController:
             # 获取当前代理IP（可选）
             if proxy:
                 try:
-                    async with context.new_page() as test_page:
-                        await test_page.goto('http://httpbin.org/ip', wait_until='networkidle')
+                    # 正确使用 async with
+                    test_page = await context.new_page()
+                    try:
+                        await test_page.goto('http://httpbin.org/ip', wait_until='load', timeout=10000)
                         content = await test_page.content()
                         ip_match = re.search(r'"origin":\s*"([^"]+)"', content)
                         self.current_ip = ip_match.group(1) if ip_match else "未知"
+                    finally:
+                        await test_page.close()
                 except Exception as e:
                     print(f"获取IP失败: {str(e)}")
                     self.current_ip = f"{proxy['host']}:{proxy['port']}"
@@ -86,15 +90,23 @@ class BrowserController:
         try:
             print(f"正在访问: {url}")
             # 设置页面超时
-            self.page.set_default_timeout(30000)  # 30秒超时
+            self.page.set_default_timeout(60000)  # 增加到60秒超时
             
-            # 访问页面
-            response = await self.page.goto(url, wait_until='networkidle')
+            # 访问页面，使用 load 事件而不是 networkidle
+            response = await self.page.goto(
+                url, 
+                wait_until='load',  # 改为 load
+                timeout=60000  # 单独设置导航超时
+            )
+            
             if not response.ok:
                 return f"访问失败: HTTP {response.status}"
             
-            # 等待页面加载完成
-            await self.page.wait_for_load_state('networkidle')
+            # 等待页面加载完成，使用较短的超时
+            try:
+                await self.page.wait_for_load_state('networkidle', timeout=10000)
+            except:
+                print("等待网络空闲超时，继续执行")
             
             # 执行滚动操作模拟真实浏览
             await self.page.evaluate("""
