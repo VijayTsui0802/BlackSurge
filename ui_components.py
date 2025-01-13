@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextEdit, QLineEdit, QSpinBox, QSlider, QRadioButton, QButtonGroup, QGroupBox
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 
 def create_title_section():
     """创建标题区域"""
@@ -137,37 +138,56 @@ def create_control_section():
     control_frame = QFrame()
     control_frame.setObjectName("controlFrame")
     control_layout = QVBoxLayout(control_frame)
+    control_layout.setSpacing(15)
     
     # 时间控制
     time_group = QGroupBox("访问时间控制")
     time_group.setObjectName("controlGroup")
-    time_layout = QHBoxLayout(time_group)
+    time_layout = QVBoxLayout(time_group)
+    time_layout.setSpacing(10)
     
+    time_desc = QLabel("设置每个网页的停留时间范围")
+    time_desc.setObjectName("descLabel")
+    time_layout.addWidget(time_desc)
+    
+    time_input_layout = QHBoxLayout()
+    time_input_layout.setSpacing(20)
+    
+    # 最小时间
     min_time_layout = QVBoxLayout()
-    min_time_label = QLabel("最小时间(秒)")
+    min_time_label = QLabel("最小时间")
+    min_time_label.setObjectName("controlLabel")
     min_time_input = QSpinBox()
     min_time_input.setRange(1, 300)
     min_time_input.setValue(10)
+    min_time_input.setSuffix(" 秒")
+    min_time_input.setObjectName("timeSpinBox")
     min_time_layout.addWidget(min_time_label)
     min_time_layout.addWidget(min_time_input)
     
+    # 最大时间
     max_time_layout = QVBoxLayout()
-    max_time_label = QLabel("最大时间(秒)")
+    max_time_label = QLabel("最大时间")
+    max_time_label.setObjectName("controlLabel")
     max_time_input = QSpinBox()
     max_time_input.setRange(1, 300)
     max_time_input.setValue(20)
+    max_time_input.setSuffix(" 秒")
+    max_time_input.setObjectName("timeSpinBox")
     max_time_layout.addWidget(max_time_label)
     max_time_layout.addWidget(max_time_input)
     
-    time_layout.addLayout(min_time_layout)
-    time_layout.addLayout(max_time_layout)
+    time_input_layout.addLayout(min_time_layout)
+    time_input_layout.addLayout(max_time_layout)
+    time_layout.addLayout(time_input_layout)
     
     # 线程控制
-    thread_group = QGroupBox("线程控制")
+    thread_group = QGroupBox("并发控制")
     thread_group.setObjectName("controlGroup")
     thread_layout = QVBoxLayout(thread_group)
+    thread_layout.setSpacing(10)
     
-    thread_desc = QLabel("同时访问的网站数量")
+    thread_desc = QLabel("设置同时访问的网站数量")
     thread_desc.setObjectName("descLabel")
     
     thread_slider = QSlider(Qt.Orientation.Horizontal)
@@ -175,34 +195,52 @@ def create_control_section():
     thread_slider.setValue(3)
     thread_slider.setObjectName("threadSlider")
     
+    thread_value_layout = QHBoxLayout()
+    thread_value_label = QLabel("当前数量:")
+    thread_value_label.setObjectName("controlLabel")
     thread_value = QLabel("3")
-    thread_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    thread_value.setObjectName("valueLabel")
     thread_slider.valueChanged.connect(lambda v: thread_value.setText(str(v)))
+    
+    thread_value_layout.addWidget(thread_value_label)
+    thread_value_layout.addWidget(thread_value)
+    thread_value_layout.addStretch()
     
     thread_layout.addWidget(thread_desc)
     thread_layout.addWidget(thread_slider)
-    thread_layout.addWidget(thread_value)
+    thread_layout.addLayout(thread_value_layout)
     
     # 按钮区域
     button_layout = QHBoxLayout()
+    button_layout.setSpacing(10)
     
+    # 操作按钮组
+    operation_layout = QHBoxLayout()
     start_btn = QPushButton("开始访问")
     start_btn.setObjectName("primaryButton")
+    start_btn.setIcon(QIcon("icons/start.png"))  # 如果有图标的话
     
     stop_btn = QPushButton("停止访问")
     stop_btn.setObjectName("dangerButton")
+    stop_btn.setIcon(QIcon("icons/stop.png"))  # 如果有图标的话
     
+    operation_layout.addWidget(start_btn)
+    operation_layout.addWidget(stop_btn)
+    
+    # 配置按钮组
+    config_layout = QHBoxLayout()
     save_btn = QPushButton("保存配置")
     save_btn.setObjectName("secondaryButton")
     
     load_btn = QPushButton("加载配置")
     load_btn.setObjectName("secondaryButton")
     
-    button_layout.addWidget(start_btn)
-    button_layout.addWidget(stop_btn)
+    config_layout.addWidget(save_btn)
+    config_layout.addWidget(load_btn)
+    
+    button_layout.addLayout(operation_layout)
     button_layout.addStretch()
-    button_layout.addWidget(save_btn)
-    button_layout.addWidget(load_btn)
+    button_layout.addLayout(config_layout)
     
     # 组装控制区域
     control_layout.addWidget(time_group)

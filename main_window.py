@@ -204,6 +204,43 @@ class MainWindow(QMainWindow):
                 width: 16px;
                 height: 16px;
             }
+            
+            #controlGroup {
+                background-color: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                margin-top: 8px;
+                padding: 15px;
+            }
+            
+            #controlLabel {
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            
+            #valueLabel {
+                color: #3498db;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            
+            #timeSpinBox {
+                padding: 5px;
+                min-width: 80px;
+                border: 1px solid #bdc3c7;
+                border-radius: 4px;
+                font-size: 13px;
+            }
+            
+            #threadSlider {
+                height: 25px;
+                margin: 10px 0;
+            }
+            
+            QGroupBox {
+                font-size: 14px;
+            }
         """
         
     def closeEvent(self, event):
