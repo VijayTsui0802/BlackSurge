@@ -31,14 +31,19 @@ jobs:
         pip install PyQt6-Qt6
         pip install PyQt6-WebEngine
         
-    - name: Install Playwright browsers
+    - name: Install and prepare Playwright
       run: |
         python -m playwright install chromium
+        # 创建临时目录用于存储浏览器
+        mkdir playwright-browsers
+        # 复制浏览器文件
+        xcopy /E /I $env:USERPROFILE\AppData\Local\ms-playwright playwright-browsers
         
     - name: Build with PyInstaller
       run: |
         pyinstaller --noconfirm --onefile --windowed `
           --add-data "icons;icons" `
+          --add-data "playwright-browsers;playwright/driver/package/.local-browsers" `
           --icon "icons/app.ico" `
           --hidden-import PyQt6 `
           --hidden-import PyQt6.sip `
