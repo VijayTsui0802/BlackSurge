@@ -28,6 +28,8 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
         pip install PyQt6-sip
+        pip install PyQt6-Qt6
+        pip install PyQt6-WebEngine
         
     - name: Install Playwright browsers
       run: |
@@ -46,6 +48,7 @@ jobs:
           --hidden-import playwright `
           --hidden-import aiohttp `
           --hidden-import aiohttp_socks `
+          --collect-all PyQt6 `
           --collect-all playwright `
           --name "代理IP网站访问工具" `
           main.py
