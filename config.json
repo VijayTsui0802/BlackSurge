@@ -6,5 +6,5 @@
   "max_time": 20,
   "min_interval": 5,
   "max_interval": 15,
-  "headless": false
+  "headless": true
 }

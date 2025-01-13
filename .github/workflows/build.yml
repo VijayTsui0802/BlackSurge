@@ -1,0 +1,57 @@
+name: Build Application
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Install Playwright browsers
+      run: |
+        python -m playwright install chromium
+        
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --noconfirm --onefile --windowed `
+          --add-data "icons;icons" `
+          --hidden-import PyQt6 `
+          --hidden-import playwright `
+          --hidden-import aiohttp `
+          --hidden-import aiohttp_socks `
+          --collect-all playwright `
+          --name "代理IP网站访问工具" `
+          main.py
+
+    - name: Create Release ZIP
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd dist
+        7z a -tzip "代理IP网站访问工具.zip" "代理IP网站访问工具.exe"
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          dist/代理IP网站访问工具.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
