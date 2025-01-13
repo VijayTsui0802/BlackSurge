@@ -23,14 +23,22 @@ class ProxyBrowser:
         while not self.url_queue.empty():
             self.url_queue.get()
             
-        # 获取URLs
+        # 获取URLs和访问次数
         urls = self.window.url_input.toPlainText().strip().split('\n')
-        urls = [url.strip() for url in urls if url.strip()]
+        for url_line in urls:
+            if '----' in url_line:
+                url, count = url_line.split('----')
+                try:
+                    count = int(count)
+                    # 将URL添加指定次数
+                    for _ in range(count):
+                        self.url_queue.put(url.strip())
+                except ValueError:
+                    self.window.log_text.append(f"错误的访问次数格式: {url_line}")
+            else:
+                # 没有指定次数，默认访问一次
+                self.url_queue.put(url_line.strip())
         
-        if not urls:
-            self.window.log_text.append("请输入要访问的URL")
-            return
-            
         # 获取当前代理
         proxy = self.window.get_current_proxy()
         if not proxy:
@@ -43,10 +51,7 @@ class ProxyBrowser:
         # 获取浏览器模式
         headless = self.window.get_browser_mode()
         
-        # 将URLs添加到队列
-        for url in urls:
-            self.url_queue.put(url)
-            
+        # 获取浏览器线程数
         thread_count = min(self.window.thread_slider.value(), len(urls))
         
         # 创建并启动线程
@@ -102,13 +107,13 @@ class BrowserThread(QThread):
                         self.log_signal.emit(f"正在访问: {url} (使用IP: {current_ip})")
                         content = await self.browser_controller.visit_url(url)
                         
-                        # 随机等待时间
-                        wait_time = random.randint(
-                            self.time_range['min_time'],
-                            self.time_range['max_time']
+                        # 随机等待间隔时间
+                        interval_time = random.randint(
+                            self.time_range['min_interval'],
+                            self.time_range['max_interval']
                         )
-                        self.log_signal.emit(f"停留 {wait_time} 秒...")
-                        await asyncio.sleep(wait_time)
+                        self.log_signal.emit(f"等待间隔 {interval_time} 秒...")
+                        await asyncio.sleep(interval_time)
                         
                         self.log_signal.emit(f"访问成功: {url}")
                     except Empty:

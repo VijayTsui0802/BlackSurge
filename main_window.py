@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
             self.log_text,
             self.min_time_input,
             self.max_time_input,
+            self.min_interval_input,
+            self.max_interval_input,
             self.thread_slider,
             self.start_btn,
             self.stop_btn,
@@ -52,6 +54,8 @@ class MainWindow(QMainWindow):
         self.thread_slider.valueChanged.connect(self.auto_save_config)
         self.min_time_input.valueChanged.connect(self.auto_save_config)
         self.max_time_input.valueChanged.connect(self.auto_save_config)
+        self.min_interval_input.valueChanged.connect(self.auto_save_config)
+        self.max_interval_input.valueChanged.connect(self.auto_save_config)
         self.browser_mode_group.buttonClicked.connect(self.auto_save_config)
         
         # 自动加载配置
@@ -299,7 +303,9 @@ class MainWindow(QMainWindow):
         """获取访问时间范围设置"""
         return {
             'min_time': self.min_time_input.value(),
-            'max_time': self.max_time_input.value()
+            'max_time': self.max_time_input.value(),
+            'min_interval': self.min_interval_input.value(),
+            'max_interval': self.max_interval_input.value()
         } 
         
     def get_browser_mode(self):

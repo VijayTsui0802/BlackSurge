@@ -126,7 +126,9 @@ class ProxyManager:
             'thread_count': self.main_window.thread_slider.value(),
             'min_time': self.main_window.min_time_input.value(),
             'max_time': self.main_window.max_time_input.value(),
-            'headless': self.main_window.get_browser_mode()  # 添加浏览器模式
+            'min_interval': self.main_window.min_interval_input.value(),
+            'max_interval': self.main_window.max_interval_input.value(),
+            'headless': self.main_window.get_browser_mode()
         }
         
         try:
@@ -150,6 +152,8 @@ class ProxyManager:
                 self.main_window.thread_slider.blockSignals(True)
                 self.main_window.min_time_input.blockSignals(True)
                 self.main_window.max_time_input.blockSignals(True)
+                self.main_window.min_interval_input.blockSignals(True)
+                self.main_window.max_interval_input.blockSignals(True)
                 
                 try:
                     # 加载配置
@@ -158,6 +162,8 @@ class ProxyManager:
                     self.main_window.thread_slider.setValue(config.get('thread_count', 3))
                     self.main_window.min_time_input.setValue(config.get('min_time', 10))
                     self.main_window.max_time_input.setValue(config.get('max_time', 20))
+                    self.main_window.min_interval_input.setValue(config.get('min_interval', 5))
+                    self.main_window.max_interval_input.setValue(config.get('max_interval', 15))
                     
                     # 设置浏览器模式
                     headless = config.get('headless', False)
@@ -177,6 +183,8 @@ class ProxyManager:
                     self.main_window.thread_slider.blockSignals(False)
                     self.main_window.min_time_input.blockSignals(False)
                     self.main_window.max_time_input.blockSignals(False)
+                    self.main_window.min_interval_input.blockSignals(False)
+                    self.main_window.max_interval_input.blockSignals(False)
             else:
                 self.main_window.log_text.append("未找到配置文件")
         except Exception as e:

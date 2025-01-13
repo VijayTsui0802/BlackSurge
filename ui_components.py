@@ -31,11 +31,16 @@ def create_url_section():
     
     url_header = QLabel("URLs (每行一个):")
     url_header.setObjectName("sectionHeader")
+    
+    url_desc = QLabel("格式：网址----访问次数\n例如：https://mail.tm/zh/----1000")
+    url_desc.setObjectName("descLabel")
+    
     url_input = QTextEdit()
-    url_input.setPlaceholderText("请输入要访问的网址，每行一个")
+    url_input.setPlaceholderText("请输入要访问的网址\n例如：https://mail.tm/zh/----1000")
     url_input.setMinimumHeight(150)
     
     url_layout.addWidget(url_header)
+    url_layout.addWidget(url_desc)
     url_layout.addWidget(url_input)
     
     return url_frame, url_input
@@ -106,7 +111,7 @@ def create_main_content(proxy_manager):
     right_layout.setSpacing(15)
     
     # 访问控制区域
-    control_frame, min_time_input, max_time_input, thread_slider, start_btn, stop_btn, save_btn, load_btn = create_control_section()
+    control_frame, min_time_input, max_time_input, min_interval_input, max_interval_input, thread_slider, start_btn, stop_btn, save_btn, load_btn = create_control_section()
     right_layout.addWidget(control_frame)
     
     # 日志显示区域
@@ -126,6 +131,8 @@ def create_main_content(proxy_manager):
         log_text,
         min_time_input,
         max_time_input,
+        min_interval_input,
+        max_interval_input,
         thread_slider,
         start_btn,
         stop_btn,
@@ -185,6 +192,52 @@ def create_control_section():
     time_input_layout.addLayout(max_time_layout)
     time_input_layout.addStretch()  # 添加弹性空间
     time_layout.addLayout(time_input_layout)
+    
+    # 间隔时间控制
+    interval_group = QGroupBox("访问间隔控制")
+    interval_group.setObjectName("controlGroup")
+    interval_layout = QVBoxLayout(interval_group)
+    interval_layout.setSpacing(10)
+    
+    interval_desc = QLabel("设置两次访问之间的间隔时间范围")
+    interval_desc.setObjectName("descLabel")
+    interval_layout.addWidget(interval_desc)
+    
+    interval_input_layout = QHBoxLayout()
+    interval_input_layout.setSpacing(20)
+    
+    # 最小间隔时间
+    min_interval_layout = QVBoxLayout()
+    min_interval_label = QLabel("最小间隔")
+    min_interval_label.setObjectName("controlLabel")
+    min_interval_input = QSpinBox()
+    min_interval_input.setRange(0, 3600)  # 0秒到1小时
+    min_interval_input.setValue(5)
+    min_interval_input.setSuffix(" 秒")
+    min_interval_input.setObjectName("timeSpinBox")
+    min_interval_input.setMinimumWidth(120)
+    min_interval_input.setFixedHeight(30)
+    min_interval_layout.addWidget(min_interval_label)
+    min_interval_layout.addWidget(min_interval_input)
+    
+    # 最大间隔时间
+    max_interval_layout = QVBoxLayout()
+    max_interval_label = QLabel("最大间隔")
+    max_interval_label.setObjectName("controlLabel")
+    max_interval_input = QSpinBox()
+    max_interval_input.setRange(0, 3600)
+    max_interval_input.setValue(15)
+    max_interval_input.setSuffix(" 秒")
+    max_interval_input.setObjectName("timeSpinBox")
+    max_interval_input.setMinimumWidth(120)
+    max_interval_input.setFixedHeight(30)
+    max_interval_layout.addWidget(max_interval_label)
+    max_interval_layout.addWidget(max_interval_input)
+    
+    interval_input_layout.addLayout(min_interval_layout)
+    interval_input_layout.addLayout(max_interval_layout)
+    interval_input_layout.addStretch()
+    interval_layout.addLayout(interval_input_layout)
     
     # 线程控制
     thread_group = QGroupBox("并发控制")
@@ -251,10 +304,22 @@ def create_control_section():
     
     # 组装控制区域
     control_layout.addWidget(time_group)
+    control_layout.addWidget(interval_group)
     control_layout.addWidget(thread_group)
     control_layout.addLayout(button_layout)
     
-    return control_frame, min_time_input, max_time_input, thread_slider, start_btn, stop_btn, save_btn, load_btn
+    return (
+        control_frame, 
+        min_time_input, 
+        max_time_input, 
+        min_interval_input,
+        max_interval_input,
+        thread_slider, 
+        start_btn, 
+        stop_btn, 
+        save_btn, 
+        load_btn
+    )
 
 def create_log_section():
     """创建日志显示区域"""
