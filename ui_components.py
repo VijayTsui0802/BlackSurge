@@ -250,17 +250,21 @@ def create_control_section():
     
     thread_slider = QSlider(Qt.Orientation.Horizontal)
     thread_slider.setRange(1, 10)
-    thread_slider.setValue(3)
+    thread_slider.setValue(5)
     thread_slider.setObjectName("threadSlider")
-    thread_slider.setFixedHeight(30)  # 设置固定高度
+    thread_slider.setFixedHeight(30)
     
     thread_value_layout = QHBoxLayout()
     thread_value_label = QLabel("当前数量:")
     thread_value_label.setObjectName("controlLabel")
-    thread_value = QLabel("3")
+    thread_value = QLabel("5")
     thread_value.setObjectName("valueLabel")
-    thread_value.setMinimumWidth(30)  # 设置最小宽度
-    thread_slider.valueChanged.connect(lambda v: thread_value.setText(str(v)))
+    thread_value.setMinimumWidth(30)
+    
+    # 确保滑块值改变时更新显示
+    def update_thread_value(value):
+        thread_value.setText(str(value))
+    thread_slider.valueChanged.connect(update_thread_value)
     
     thread_value_layout.addWidget(thread_value_label)
     thread_value_layout.addWidget(thread_value)

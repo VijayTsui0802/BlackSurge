@@ -4,6 +4,7 @@ import asyncio
 import aiohttp
 import random
 from PyQt6.QtCore import QThread, QTimer
+from PyQt6.QtWidgets import QLabel
 
 class AsyncioThread(QThread):
     def run(self):
@@ -159,7 +160,14 @@ class ProxyManager:
                     # 加载配置
                     self.main_window.url_input.setPlainText(config.get('urls', ''))
                     self.proxy_input.setText(config.get('proxy_string', ''))
-                    self.main_window.thread_slider.setValue(config.get('thread_count', 3))
+                    thread_count = config.get('thread_count', 5)
+                    self.main_window.thread_slider.setValue(thread_count)
+                    # 确保显示值也更新
+                    for value_label in self.main_window.findChildren(QLabel):
+                        if value_label.objectName() == "valueLabel":
+                            value_label.setText(str(thread_count))
+                            break
+                    
                     self.main_window.min_time_input.setValue(config.get('min_time', 10))
                     self.main_window.max_time_input.setValue(config.get('max_time', 20))
                     self.main_window.min_interval_input.setValue(config.get('min_interval', 5))
