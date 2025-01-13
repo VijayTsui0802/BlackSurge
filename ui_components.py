@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QTextEdit, QLineEdit, QSpinBox, QSlider
+    QPushButton, QTextEdit, QLineEdit, QSpinBox, QSlider, QRadioButton, QButtonGroup
 )
 from PyQt6.QtCore import Qt
 
@@ -198,3 +198,33 @@ def create_log_section():
     log_layout.addWidget(log_text)
     
     return log_frame, log_text 
+
+def create_browser_mode_section():
+    """创建浏览器模式选择区域"""
+    mode_frame = QFrame()
+    mode_frame.setObjectName("inputFrame")
+    mode_layout = QVBoxLayout(mode_frame)
+    
+    mode_header = QLabel("浏览器模式")
+    mode_header.setObjectName("sectionHeader")
+    
+    mode_desc = QLabel("选择浏览器运行模式")
+    mode_desc.setObjectName("descLabel")
+    
+    # 创建单选按钮
+    headless_radio = QRadioButton("无头模式（后台运行）")
+    visible_radio = QRadioButton("可见模式（显示浏览器）")
+    visible_radio.setChecked(True)  # 默认选择可见模式
+    
+    # 创建按钮组
+    mode_group = QButtonGroup()
+    mode_group.addButton(headless_radio)
+    mode_group.addButton(visible_radio)
+    
+    # 组装布局
+    mode_layout.addWidget(mode_header)
+    mode_layout.addWidget(mode_desc)
+    mode_layout.addWidget(visible_radio)
+    mode_layout.addWidget(headless_radio)
+    
+    return mode_frame, mode_group 

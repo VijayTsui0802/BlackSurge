@@ -7,7 +7,8 @@ from ui_components import (
     create_time_section,
     create_thread_section,
     create_button_section,
-    create_log_section
+    create_log_section,
+    create_browser_mode_section
 )
 from proxy_manager import ProxyManager
 
@@ -58,6 +59,13 @@ class MainWindow(QMainWindow):
         log_frame, self.log_text = create_log_section()
         main_layout.addWidget(log_frame)
         
+        # 浏览器模式选择区域
+        mode_frame, self.browser_mode_group = create_browser_mode_section()
+        main_layout.addWidget(mode_frame)
+        
+        # 将浏览器模式添加到自动保存配置
+        self.browser_mode_group.buttonClicked.connect(self.auto_save_config)
+        
         # 连接信号
         self.save_btn.clicked.connect(self.proxy_manager.save_config)
         self.load_btn.clicked.connect(self.proxy_manager.load_config)
@@ -89,3 +97,18 @@ class MainWindow(QMainWindow):
     def auto_save_config(self):
         """自动保存配置"""
         self.proxy_manager.save_config(show_message=False) 
+        
+    def get_current_proxy(self):
+        """获取当前代理信息的代理方法"""
+        return self.proxy_manager.get_current_proxy() 
+        
+    def get_time_range(self):
+        """获取访问时间范围设置"""
+        return {
+            'min_time': self.min_time_input.value(),
+            'max_time': self.max_time_input.value()
+        } 
+        
+    def get_browser_mode(self):
+        """获取浏览器模式设置"""
+        return self.browser_mode_group.checkedButton().text() == "无头模式（后台运行）" 

@@ -53,7 +53,7 @@ class ProxyManager:
                 'port': port,
                 'username': username,
                 'password': password,
-                'full_proxy': f"socks5://{username}:{password}@{host}:{port}"
+                'full_proxy': f"http://{username}:{password}@{host}:{port}"
             }
             
             self.current_proxy = proxy_info
@@ -66,7 +66,17 @@ class ProxyManager:
             
     def get_current_proxy(self):
         """获取新的代理信息（每次调用都生成新会话）"""
-        return self.generate_proxy_session()
+        proxy_info = self.generate_proxy_session()
+        if proxy_info:
+            # 确保返回完整的代理信息字典
+            return {
+                'host': proxy_info['host'],
+                'port': proxy_info['port'],
+                'username': proxy_info['username'],
+                'password': proxy_info['password'],
+                'full_proxy': proxy_info['full_proxy']
+            }
+        return None
         
     async def test_proxy(self):
         """测试当前代理"""
@@ -115,7 +125,8 @@ class ProxyManager:
             'proxy_string': self.proxy_input.text(),
             'thread_count': self.main_window.thread_slider.value(),
             'min_time': self.main_window.min_time_input.value(),
-            'max_time': self.main_window.max_time_input.value()
+            'max_time': self.main_window.max_time_input.value(),
+            'headless': self.main_window.get_browser_mode()  # 添加浏览器模式
         }
         
         try:
@@ -148,6 +159,13 @@ class ProxyManager:
                     self.main_window.min_time_input.setValue(config.get('min_time', 10))
                     self.main_window.max_time_input.setValue(config.get('max_time', 20))
                     
+                    # 设置浏览器模式
+                    headless = config.get('headless', False)
+                    for button in self.main_window.browser_mode_group.buttons():
+                        if (button.text() == "无头模式（后台运行）") == headless:
+                            button.setChecked(True)
+                            break
+                        
                     if config.get('proxy_string'):
                         self.generate_proxy_session()
                         
