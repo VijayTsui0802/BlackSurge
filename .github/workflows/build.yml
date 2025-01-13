@@ -33,6 +33,7 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed `
           --add-data "icons;icons" `
+          --icon "icons/app.ico" `
           --hidden-import PyQt6 `
           --hidden-import playwright `
           --hidden-import aiohttp `
