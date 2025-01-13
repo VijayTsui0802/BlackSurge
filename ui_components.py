@@ -1,13 +1,26 @@
 from PyQt6.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QTextEdit, QLineEdit, QSpinBox, QSlider, QRadioButton, QButtonGroup
+    QPushButton, QTextEdit, QLineEdit, QSpinBox, QSlider, QRadioButton, QButtonGroup, QGroupBox
 )
 from PyQt6.QtCore import Qt
 
 def create_title_section():
+    """创建标题区域"""
+    title_frame = QFrame()
+    title_frame.setObjectName("titleFrame")
+    title_layout = QHBoxLayout(title_frame)
+    
     title_label = QLabel("代理IP网站访问工具")
     title_label.setObjectName("titleLabel")
-    return title_label
+    
+    version_label = QLabel("v1.0")
+    version_label.setObjectName("versionLabel")
+    
+    title_layout.addWidget(title_label)
+    title_layout.addStretch()
+    title_layout.addWidget(version_label)
+    
+    return title_frame
 
 def create_url_section():
     """创建URL输入区域"""
@@ -61,100 +74,117 @@ def create_proxy_section(proxy_manager):
     
     return proxy_frame
 
-def create_time_section():
-    """创建访问时间控制区域"""
-    time_frame = QFrame()
-    time_frame.setObjectName("inputFrame")
-    time_layout = QVBoxLayout(time_frame)
+def create_main_content(proxy_manager):
+    """创建主要内容区域（左右布局）"""
+    content_frame = QFrame()
+    content_layout = QHBoxLayout(content_frame)
+    content_layout.setSpacing(20)
     
-    time_header = QLabel("访问时间控制")
-    time_header.setObjectName("sectionHeader")
-    time_desc = QLabel("设置每个网页的停留时间范围（秒）")
-    time_desc.setObjectName("descLabel")
+    # 左侧面板
+    left_panel = QFrame()
+    left_layout = QVBoxLayout(left_panel)
+    left_layout.setSpacing(15)
     
-    # 时间范围输入布局
-    time_range_layout = QHBoxLayout()
+    # URL输入区域
+    url_frame, url_input = create_url_section()
+    left_layout.addWidget(url_frame)
     
-    # 最小时间
+    # 代理设置区域
+    proxy_frame = create_proxy_section(proxy_manager)
+    left_layout.addWidget(proxy_frame)
+    
+    # 浏览器模式选择
+    mode_frame, mode_group = create_browser_mode_section()
+    left_layout.addWidget(mode_frame)
+    
+    left_layout.addStretch()
+    
+    # 右侧面板
+    right_panel = QFrame()
+    right_layout = QVBoxLayout(right_panel)
+    right_layout.setSpacing(15)
+    
+    # 访问控制区域
+    control_frame, min_time_input, max_time_input, thread_slider, start_btn, stop_btn, save_btn, load_btn = create_control_section()
+    right_layout.addWidget(control_frame)
+    
+    # 日志显示区域
+    log_frame, log_text = create_log_section()
+    right_layout.addWidget(log_frame, stretch=1)
+    
+    # 添加到主布局
+    content_layout.addWidget(left_panel)
+    content_layout.addWidget(right_panel)
+    content_layout.setStretch(0, 4)
+    content_layout.setStretch(1, 6)
+    
+    return (
+        content_frame, 
+        url_input, 
+        mode_group, 
+        log_text,
+        min_time_input,
+        max_time_input,
+        thread_slider,
+        start_btn,
+        stop_btn,
+        save_btn,
+        load_btn
+    )
+
+def create_control_section():
+    """创建访问控制区域（合并时间和线程控制）"""
+    control_frame = QFrame()
+    control_frame.setObjectName("controlFrame")
+    control_layout = QVBoxLayout(control_frame)
+    
+    # 时间控制
+    time_group = QGroupBox("访问时间控制")
+    time_group.setObjectName("controlGroup")
+    time_layout = QHBoxLayout(time_group)
+    
     min_time_layout = QVBoxLayout()
     min_time_label = QLabel("最小时间(秒)")
-    min_time_label.setObjectName("controlLabel")
     min_time_input = QSpinBox()
     min_time_input.setRange(1, 300)
     min_time_input.setValue(10)
-    min_time_input.setObjectName("timeSpinBox")
     min_time_layout.addWidget(min_time_label)
     min_time_layout.addWidget(min_time_input)
     
-    # 最大时间
     max_time_layout = QVBoxLayout()
     max_time_label = QLabel("最大时间(秒)")
-    max_time_label.setObjectName("controlLabel")
     max_time_input = QSpinBox()
     max_time_input.setRange(1, 300)
     max_time_input.setValue(20)
-    max_time_input.setObjectName("timeSpinBox")
     max_time_layout.addWidget(max_time_label)
     max_time_layout.addWidget(max_time_input)
     
-    # 添加到时间范围布局
-    time_range_layout.addLayout(min_time_layout)
-    time_range_layout.addLayout(max_time_layout)
+    time_layout.addLayout(min_time_layout)
+    time_layout.addLayout(max_time_layout)
     
-    # 组装时间控制布局
-    time_layout.addWidget(time_header)
-    time_layout.addWidget(time_desc)
-    time_layout.addLayout(time_range_layout)
+    # 线程控制
+    thread_group = QGroupBox("线程控制")
+    thread_group.setObjectName("controlGroup")
+    thread_layout = QVBoxLayout(thread_group)
     
-    return time_frame, min_time_input, max_time_input
-
-def create_thread_section():
-    """创建线程控制区域"""
-    thread_frame = QFrame()
-    thread_frame.setObjectName("inputFrame")
-    thread_layout = QVBoxLayout(thread_frame)
-    
-    thread_header = QLabel("线程控制")
-    thread_header.setObjectName("sectionHeader")
-    thread_desc = QLabel("调整同时访问的网站数量 (建议: 3-5个)")
+    thread_desc = QLabel("同时访问的网站数量")
     thread_desc.setObjectName("descLabel")
     
-    # 滑块布局
-    slider_layout = QHBoxLayout()
-    
-    # 最小值标签
-    min_label = QLabel("较慢\n1")
-    min_label.setObjectName("rangeLabel")
-    min_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    
-    # 最大值标签
-    max_label = QLabel("较快\n10")
-    max_label.setObjectName("rangeLabel")
-    max_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    
-    # 创建滑块
     thread_slider = QSlider(Qt.Orientation.Horizontal)
     thread_slider.setRange(1, 10)
     thread_slider.setValue(3)
     thread_slider.setObjectName("threadSlider")
     
-    # 添加到布局
-    slider_layout.addWidget(min_label)
-    slider_layout.addWidget(thread_slider)
-    slider_layout.addWidget(max_label)
+    thread_value = QLabel("3")
+    thread_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    thread_slider.valueChanged.connect(lambda v: thread_value.setText(str(v)))
     
-    # 组装布局
-    thread_layout.addWidget(thread_header)
     thread_layout.addWidget(thread_desc)
-    thread_layout.addLayout(slider_layout)
+    thread_layout.addWidget(thread_slider)
+    thread_layout.addWidget(thread_value)
     
-    return thread_frame, thread_slider
-
-def create_button_section():
-    """创建按钮区域"""
-    button_frame = QFrame()
-    button_frame.setObjectName("buttonFrame")
-    button_layout = QHBoxLayout(button_frame)
+    # 按钮区域
+    button_layout = QHBoxLayout()
     
     start_btn = QPushButton("开始访问")
     start_btn.setObjectName("primaryButton")
@@ -163,15 +193,10 @@ def create_button_section():
     stop_btn.setObjectName("dangerButton")
     
     save_btn = QPushButton("保存配置")
-    save_btn.setObjectName("primaryButton")
+    save_btn.setObjectName("secondaryButton")
     
     load_btn = QPushButton("加载配置")
-    load_btn.setObjectName("primaryButton")
-    
-    # 统一按钮大小
-    for btn in [start_btn, stop_btn, save_btn, load_btn]:
-        btn.setMinimumWidth(120)
-        btn.setMinimumHeight(35)
+    load_btn.setObjectName("secondaryButton")
     
     button_layout.addWidget(start_btn)
     button_layout.addWidget(stop_btn)
@@ -179,7 +204,12 @@ def create_button_section():
     button_layout.addWidget(save_btn)
     button_layout.addWidget(load_btn)
     
-    return button_frame, start_btn, stop_btn, save_btn, load_btn
+    # 组装控制区域
+    control_layout.addWidget(time_group)
+    control_layout.addWidget(thread_group)
+    control_layout.addLayout(button_layout)
+    
+    return control_frame, min_time_input, max_time_input, thread_slider, start_btn, stop_btn, save_btn, load_btn
 
 def create_log_section():
     """创建日志显示区域"""
