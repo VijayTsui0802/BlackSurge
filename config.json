@@ -1,0 +1,5 @@
+{
+  "urls": "https://www.ipaddress.my/?lang=zh_CN",
+  "proxy_api": "https://www.kookeey.com/pickdynamicips?auth=pwd&format=1&n=1&p=http&gate=global&g=BR&r=0&type=txt&sign=61d1ca922a1fca34abe86db5a545bff8&accessid=6563958&dl=&upf=1,3",
+  "thread_count": 3
+}
