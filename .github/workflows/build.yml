@@ -27,6 +27,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+        pip install PyQt6-sip
         
     - name: Install Playwright browsers
       run: |
@@ -38,6 +39,10 @@ jobs:
           --add-data "icons;icons" `
           --icon "icons/app.ico" `
           --hidden-import PyQt6 `
+          --hidden-import PyQt6.sip `
+          --hidden-import PyQt6.QtCore `
+          --hidden-import PyQt6.QtGui `
+          --hidden-import PyQt6.QtWidgets `
           --hidden-import playwright `
           --hidden-import aiohttp `
           --hidden-import aiohttp_socks `
