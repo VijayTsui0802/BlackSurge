@@ -6,22 +6,23 @@ from browser_controller import BrowserController
 import asyncio
 from queue import Queue, Empty
 import random
+import threading
 
 class ProxyBrowser:
     def __init__(self):
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
         self.browser_threads = []
-        self.url_queue = Queue()
+        self.url_list = []
+        self.url_lock = threading.Lock()  # 添加线程锁
         
         # 连接信号
         self.window.start_btn.clicked.connect(self.start_browsing)
         self.window.stop_btn.clicked.connect(self.stop_browsing)
         
     def start_browsing(self):
-        # 清空之前的队列和线程
-        while not self.url_queue.empty():
-            self.url_queue.get()
+        # 清空之前的URL列表和线程
+        self.url_list.clear()
         self.stop_browsing()
         
         # 获取URLs和访问次数
@@ -37,12 +38,12 @@ class ProxyBrowser:
                 try:
                     count = int(count)
                     for _ in range(count):
-                        self.url_queue.put(url.strip())
+                        self.url_list.append(url.strip())
                         total_tasks += 1
                 except ValueError:
                     self.window.log_text.append(f"错误的访问次数格式: {url_line}")
             else:
-                self.url_queue.put(url_line.strip())
+                self.url_list.append(url_line.strip())
                 total_tasks += 1
         
         if total_tasks == 0:
@@ -66,11 +67,12 @@ class ProxyBrowser:
         # 创建并启动线程
         for i in range(thread_count):
             thread = BrowserThread(
-                self.url_queue, 
-                self.window.proxy_manager,  # 传入代理管理器
+                self.url_list,  # 传入URL列表而不是队列
+                self.window.proxy_manager,
                 time_range,
                 headless,
-                f"线程-{i+1}"
+                f"线程-{i+1}",
+                self.url_lock
             )
             thread.log_signal.connect(self.window.log_text.append)
             thread.start()
@@ -103,9 +105,10 @@ class ProxyBrowser:
 class BrowserThread(QThread):
     log_signal = pyqtSignal(str)
     
-    def __init__(self, url_queue, proxy_manager, time_range, headless, thread_name):
+    def __init__(self, url_list, proxy_manager, time_range, headless, thread_name, url_lock):
         super().__init__()
-        self.url_queue = url_queue
+        self.url_list = url_list
+        self.url_lock = url_lock  # 添加线程锁
         self.proxy_manager = proxy_manager
         self.time_range = time_range
         self.headless = headless
@@ -116,11 +119,14 @@ class BrowserThread(QThread):
     def run(self):
         while self.is_running:
             try:
-                # 获取下一个URL，如果队列为空则退出
-                try:
-                    url = self.url_queue.get_nowait()
-                except Empty:
-                    break
+                # 使用线程锁保护URL列表的访问
+                with self.url_lock:
+                    if not self.url_list:  # 检查URL列表是否为空
+                        break
+                    # 随机选择一个URL
+                    url = random.choice(self.url_list)
+                    # 从列表中移除已选择的URL
+                    self.url_list.remove(url)
                 
                 try:
                     # 创建新的浏览器实例
