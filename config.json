@@ -1,10 +1,10 @@
 {
-  "urls": "https://mail.tm/zh----100",
-  "proxy_string": "prem.iprocket.io:5959:com23112818-res-BR-sid-{sid}-sesstime-5:ZvXa2ey06FmX41o1tLcY",
+  "urls": "https://mail.tm/zh----100\nhttps://zhuanlan.zhihu.com/p/143103218-100",
+  "proxy_string": "a1e066ff443a50c5.zqz.na.pyproxy.io:16666:gdergd34534-zone-resi-region-br-session-{sid}-sessTime-120:sdfsd4343fsdf",
   "thread_count": 7,
   "min_time": 10,
   "max_time": 20,
   "min_interval": 5,
   "max_interval": 15,
-  "headless": true
+  "headless": false
 }

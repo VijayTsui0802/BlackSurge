@@ -14,7 +14,9 @@ class ProxyBrowser:
         self.window = MainWindow()
         self.browser_threads = []
         self.url_list = []
-        self.url_lock = threading.Lock()  # 添加线程锁
+        self.url_lock = threading.Lock()
+        self.stopping = False
+        self.stop_thread = None  # 添加停止线程的引用
         
         # 连接信号
         self.window.start_btn.clicked.connect(self.start_browsing)
@@ -82,21 +84,55 @@ class ProxyBrowser:
 
     def stop_browsing(self):
         """停止所有浏览线程"""
-        # 停止所有线程
-        for thread in self.browser_threads:
-            if thread.isRunning():
-                thread.stop()
-                thread.wait()  # 等待线程结束
-        
-        # 清空线程列表
-        self.browser_threads.clear()
-        
-        # 清空队列
-        while not self.url_queue.empty():
-            self.url_queue.get()
+        if self.stopping:
+            return
             
-        self.window.log_text.append("已停止所有浏览任务")
+        self.stopping = True
+        self.window.log_text.append("正在停止所有浏览任务...")
+        self.window.stop_btn.setEnabled(False)
         
+        # 创建停止线程
+        class StopThread(QThread):
+            def __init__(self, browser):
+                super().__init__()
+                self.browser = browser
+                
+            def run(self):
+                self.browser._stop_threads()
+        
+        self.stop_thread = StopThread(self)
+        self.stop_thread.finished.connect(self._on_stop_complete)
+        self.stop_thread.start()
+    
+    def _stop_threads(self):
+        """在单独的线程中停止所有浏览线程"""
+        try:
+            # 停止所有线程
+            for thread in self.browser_threads[:]:  # 使用列表副本进行迭代
+                if thread and thread.isRunning():
+                    thread.stop()
+                    thread.wait(5000)  # 最多等待5秒
+                    
+            # 清空线程列表
+            self.browser_threads.clear()
+            
+            # 清空URL列表
+            with self.url_lock:
+                self.url_list.clear()
+                
+        except Exception as e:
+            self.window.log_text.append(f"停止过程出错: {str(e)}")
+    
+    def _on_stop_complete(self):
+        """停止完成后的回调"""
+        self.stopping = False
+        self.window.stop_btn.setEnabled(True)
+        self.window.log_text.append("已停止所有浏览任务")
+        # 清理停止线程
+        if self.stop_thread:
+            self.stop_thread.deleteLater()
+            self.stop_thread = None
+
     def run(self):
         """启动应用程序"""
         self.window.show()
@@ -108,46 +144,91 @@ class BrowserThread(QThread):
     def __init__(self, url_list, proxy_manager, time_range, headless, thread_name, url_lock):
         super().__init__()
         self.url_list = url_list
-        self.url_lock = url_lock  # 添加线程锁
+        self.url_lock = url_lock
         self.proxy_manager = proxy_manager
         self.time_range = time_range
         self.headless = headless
         self.thread_name = thread_name
         self.is_running = True
         self.browser_controller = None
+        self.loop = None  # 添加事件循环引用
         
     def run(self):
-        while self.is_running:
-            try:
-                # 使用线程锁保护URL列表的访问
-                with self.url_lock:
-                    if not self.url_list:  # 检查URL列表是否为空
-                        break
-                    # 随机选择一个URL
-                    url = random.choice(self.url_list)
-                    # 从列表中移除已选择的URL
-                    self.url_list.remove(url)
-                
+        # 创建新的事件循环
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        
+        try:
+            while self.is_running:
                 try:
-                    # 创建新的浏览器实例
-                    self.browser_controller = BrowserController()
-                    # 异步执行浏览任务
-                    asyncio.run(self.browse_url(url))
-                except Exception as e:
-                    self.log_signal.emit(f"{self.thread_name} 访问出错: {str(e)}")
-                finally:
-                    # 确保浏览器被关闭
-                    if self.browser_controller:
-                        try:
-                            asyncio.run(self.browser_controller.close())
-                            self.browser_controller = None
-                        except Exception as e:
-                            self.log_signal.emit(f"{self.thread_name} 关闭浏览器出错: {str(e)}")
+                    url = None
+                    # 使用线程锁保护URL列表的访问
+                    with self.url_lock:
+                        if not self.url_list:  # 检查URL列表是否为空
+                            break
+                        # 随机选择一个URL
+                        url = random.choice(self.url_list)
+                        # 从列表中移除已选择的URL
+                        self.url_list.remove(url)
                     
-            except Exception as e:
-                self.log_signal.emit(f"{self.thread_name} 错误: {str(e)}")
+                    if not url or not self.is_running:  # 再次检查运行状态
+                        break
+                        
+                    try:
+                        # 创建新的浏览器实例
+                        self.browser_controller = BrowserController()
+                        # 在事件循环中执行浏览任务
+                        self.loop.run_until_complete(self.browse_url(url))
+                        
+                        if not self.is_running:  # 检查是否需要停止
+                            break
+                            
+                    except Exception as e:
+                        self.log_signal.emit(f"{self.thread_name} 访问出错: {str(e)}")
+                    finally:
+                        # 确保浏览器被关闭
+                        if self.browser_controller:
+                            try:
+                                self.loop.run_until_complete(self.browser_controller.close())
+                                self.browser_controller = None
+                            except Exception as e:
+                                self.log_signal.emit(f"{self.thread_name} 关闭浏览器出错: {str(e)}")
+                        
+                except Exception as e:
+                    self.log_signal.emit(f"{self.thread_name} 错误: {str(e)}")
+                    if not self.is_running:  # 检查是否需要停止
+                        break
+        finally:
+            # 确保退出前清理所有资源
+            try:
+                if self.browser_controller:
+                    self.loop.run_until_complete(self.browser_controller.close())
+                    self.browser_controller = None
+            except:
+                pass
                 
-        self.log_signal.emit(f"{self.thread_name} 已完成所有任务")
+            # 清理事件循环
+            try:
+                pending = asyncio.all_tasks(self.loop)
+                if pending:
+                    self.loop.run_until_complete(asyncio.gather(*pending))
+                self.loop.run_until_complete(self.loop.shutdown_asyncgens())
+                self.loop.close()
+            except:
+                pass
+            
+            self.log_signal.emit(f"{self.thread_name} 已完成所有任务")
+    
+    def stop(self):
+        """停止线程"""
+        self.is_running = False
+        # 确保停止时关闭浏览器
+        if self.browser_controller and self.loop and not self.loop.is_closed():
+            try:
+                self.loop.run_until_complete(self.browser_controller.close())
+                self.browser_controller = None
+            except:
+                pass
     
     async def browse_url(self, url):
         """处理单个URL的访问"""
@@ -200,16 +281,6 @@ class BrowserThread(QThread):
                     await self.browser_controller.browser.close()
                 except:
                     pass
-    
-    def stop(self):
-        self.is_running = False
-        # 确保停止时关闭浏览器
-        if self.browser_controller:
-            try:
-                asyncio.run(self.browser_controller.close())
-                self.browser_controller = None
-            except:
-                pass
 
 if __name__ == "__main__":
     browser = ProxyBrowser()
